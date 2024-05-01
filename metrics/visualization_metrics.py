@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
    
-def visualization (ori_data, generated_data, analysis):
+def visualization(ori_data, generated_data, analysis, path, signiture):
   """Using PCA or tSNE for generated and original data visualization.
   
   Args:
@@ -67,14 +67,14 @@ def visualization (ori_data, generated_data, analysis):
     # Plotting
     f, ax = plt.subplots(1)    
     plt.scatter(pca_results[:,0], pca_results[:,1],
-                c = colors[:anal_sample_no], alpha = 0.2, label = "Original")
+                c = colors[:anal_sample_no], alpha = 0.5, label = "Original")
     plt.scatter(pca_hat_results[:,0], pca_hat_results[:,1], 
-                c = colors[anal_sample_no:], alpha = 0.2, label = "Synthetic")
+                c = colors[anal_sample_no:], alpha = 0.5, label = "Synthetic")
   
     ax.legend()  
-    plt.title('PCA plot')
     plt.xlabel('x-pca')
     plt.ylabel('y_pca')
+    plt.savefig(f'{path}{signiture}_pca.png')
     plt.show()
     
   elif analysis == 'tsne':
@@ -90,13 +90,11 @@ def visualization (ori_data, generated_data, analysis):
     f, ax = plt.subplots(1)
       
     plt.scatter(tsne_results[:anal_sample_no,0], tsne_results[:anal_sample_no,1], 
-                c = colors[:anal_sample_no], alpha = 0.2, label = "Original")
+                c = colors[:anal_sample_no], alpha = 0.5, label = "Original")
     plt.scatter(tsne_results[anal_sample_no:,0], tsne_results[anal_sample_no:,1], 
-                c = colors[anal_sample_no:], alpha = 0.2, label = "Synthetic")
+                c = colors[anal_sample_no:], alpha = 0.5, label = "Synthetic")
   
     ax.legend()
       
-    plt.title('t-SNE plot')
-    plt.xlabel('x-tsne')
-    plt.ylabel('y_tsne')
+    plt.savefig(f'{path}{signiture}_tsne.png')
     plt.show()    

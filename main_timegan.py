@@ -30,6 +30,8 @@ import argparse
 import numpy as np
 import warnings
 warnings.filterwarnings("ignore")
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 
 # 1. TimeGAN model
 from timegan import timegan
@@ -61,14 +63,14 @@ def main (args):
     - metric_results: discriminative and predictive scores
   """
   ## Data loading
-  if args.data_name in ['stock', 'energy']:
-    ori_data = real_data_loading(args.data_name, args.seq_len)
-  elif args.data_name == 'sine':
-    # Set number of samples and its dimensions
-    no, dim = 10000, 5
-    ori_data = sine_data_generation(no, args.seq_len, dim)
+  input_file = f'./data/{args.dataset_name}_{args.dataset_state}_train.npz'
+  ori_data = np.load(input_file)
+  try:
+    ori_data = ori_data['data']
+  except:
+    ori_data = ori_data['arr_0']
     
-  print(args.data_name + ' dataset is ready.')
+  print(args.dataset_name + ' dataset is ready.')
     
   ## Synthetic data generation by TimeGAN
   # Set newtork parameters
@@ -117,15 +119,15 @@ if __name__ == '__main__':
   # Inputs for the main function
   parser = argparse.ArgumentParser()
   parser.add_argument(
-      '--data_name',
-      choices=['sine','stock','energy'],
-      default='stock',
+      '--dataset_name',
+      choices=['custom_sines'],
+      default='custom_sines',
       type=str)
   parser.add_argument(
-      '--seq_len',
-      help='sequence length',
-      default=24,
-      type=int)
+      '--dataset_state',
+      choices=['6w_correlated', '6w_independent'],
+      default='6w_correlated',
+      type=str)
   parser.add_argument(
       '--module',
       choices=['gru','lstm','lstmLN'],
@@ -161,3 +163,10 @@ if __name__ == '__main__':
   
   # Calls main function  
   ori_data, generated_data, metrics = main(args)
+  
+  output_dir = './outputs/'
+  sample_fname = f'{args.dataset_name}_{args.dataset_state}_gen.npz'
+  # we grab only the first 2000 generated samples, since the test set (of the sines) is of the same size
+  # this seems super iffy and should be looked into
+  np.savez_compressed(output_dir + sample_fname, data=generated_data[:2000]) 
+  np.savez_compressed("../TSGBench/data/timegan/" + sample_fname, data=generated_data[:2000])

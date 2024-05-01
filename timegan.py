@@ -257,9 +257,10 @@ def timegan (ori_data, parameters):
   # 3. Joint Training
   print('Start Joint Training')
   
+  myArray = []
   for itt in range(iterations):
-    # Generator training (twice more than discriminator training)
-    for kk in range(2):
+    # Generator training (thrice more than discriminator training)
+    for kk in range(3):
       # Set mini-batch
       X_mb, T_mb = batch_generator(ori_data, ori_time, batch_size)               
       # Random vector generation
@@ -279,9 +280,15 @@ def timegan (ori_data, parameters):
     # Train discriminator (only when the discriminator does not work well)
     if (check_d_loss > 0.15):        
       _, step_d_loss = sess.run([D_solver, D_loss], feed_dict={X: X_mb, T: T_mb, Z: Z_mb})
-        
+
+    myArray.append([np.round(step_d_loss,4), 
+                    np.round(step_g_loss_u,4),
+                    np.round(np.sqrt(step_g_loss_s),4),
+                    np.round(step_g_loss_v,4),
+                    np.round(np.sqrt(step_e_loss_t0),4)])
+
     # Print multiple checkpoints
-    if itt % 1000 == 0:
+    if itt % 100 == 0:
       print('step: '+ str(itt) + '/' + str(iterations) + 
             ', d_loss: ' + str(np.round(step_d_loss,4)) + 
             ', g_loss_u: ' + str(np.round(step_g_loss_u,4)) + 
@@ -289,13 +296,18 @@ def timegan (ori_data, parameters):
             ', g_loss_v: ' + str(np.round(step_g_loss_v,4)) + 
             ', e_loss_t0: ' + str(np.round(np.sqrt(step_e_loss_t0),4))  )
   print('Finish Joint Training')
-    
+  
+  output_dir = './outputs/loss/'
+  sample_fname = f'losses.npz'
+  myArray = np.array(myArray)
+  np.savez(output_dir + sample_fname, data=myArray)
+
   ## Synthetic data generation
   Z_mb = random_generator(no, z_dim, ori_time, max_seq_len)
   generated_data_curr = sess.run(X_hat, feed_dict={Z: Z_mb, X: ori_data, T: ori_time})    
     
   generated_data = list()
-    
+  
   for i in range(no):
     temp = generated_data_curr[i,:ori_time[i],:]
     generated_data.append(temp)
